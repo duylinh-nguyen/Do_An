@@ -2,6 +2,7 @@ import numpy as np
 import numpy.matlib
 import cv2
 from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 import matplotlib.pyplot as plt
 from estimateFundamentalMat import *
 
@@ -87,27 +88,27 @@ def triangulation(K, R1, R2, T1, T2, x1, x2):
 
     P2 = K @ np.concatenate((R2, T2), axis = 1)
 
-    # A = []
-    # X = []
+    A = []
+    X = []
    
 
-    # for i in range(len(x1)):
-    #     A = [ x1[i][1]*P1[2] - P1[1],
-    #           P1[0] - x1[i][0]*P1[2],
-    #           x2[i][1]*P2[2] - P2[1],
-    #           P2[0] - x2[i][0]*P2[2]]
-    #     u, s, v = np.linalg.svd(A)
-    #     X.append(v[-1]/v[-1][-1])]
+    for i in range(len(x1)):
+        A = [ x1[i][1]*P1[2] - P1[1],
+              P1[0] - x1[i][0]*P1[2],
+              x2[i][1]*P2[2] - P2[1],
+              P2[0] - x2[i][0]*P2[2]]
+        u, s, v = np.linalg.svd(A)
+        X.append(v[-1]/v[-1][-1])
 
 
-    X = cv2.triangulatePoints(P1, P2, x1.T, x2.T).T
+    # X = cv2.triangulatePoints(P1, P2, x1.T, x2.T).T
 
-    print(np.shape(X))
+    # print(np.shape(X))
 
-    for i in range(len(X)):
-        X[i] /= X[i,3]
+    # for i in range(len(X)):
+    #     X[i] /= X[i,3]
 
-    return X
+    return np.array(X)
 
 
 
@@ -170,8 +171,8 @@ Rset = []
 path = 'C:/Users/NGUYEN DUY LINH/Desktop/SLAM/SLAM-LAB/data/'
 
 # Read images and initial SIFT feature detector
-img1 = cv2.imread(path + 'image1.bmp')
-img2 = cv2.imread(path + 'image2.bmp')
+img1 = cv2.imread(path + 'image2.bmp')
+img2 = cv2.imread(path + 'image3.bmp')
 
 gray1 = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
 gray2 = cv2.cvtColor(img2,cv2.COLOR_BGR2GRAY)
@@ -210,11 +211,39 @@ print("My T: \n", T)
 
 
 
+'''Visualize the result'''
+
 X.sort(key = lambda x: x[1])
 X = np.array(X[4:])
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
+
+# define camera vectors
+C =np.array([[0], [0], [0]])
+z = np.array([0,0,1])
+y = np.array([0,1,0])
+x = np.array([1,0,0])
+
+V = np.array([x,y,z])
+
+plt.quiver(*C, V[:,0], V[:,1], V[:,2], color = ['r', 'g', 'b'])
+v = np.array([[x[-1]-0.5, y[-1]-0.5, z[-1]], [x[-1]+0.5, y[-1]-0.5, z[-1]], [x[-1]+0.5, y[-1]+0.5, z[-1]],  [x[-1]-0.5, y[-1]+0.5, z[-1]], C[:,0]])
+v1 = [(R @ i + T) for i in v]
+v1 = np.array(v1)
+#v1 = np.array([[x1[-1]-0.5, y1[-1]-0.5, z1[-1]], [x1[-1]+0.5, y1[-1]-0.5, z1[-1]], [x1[-1]+0.5, y1[-1]+0.5, z1[-1]],  [x1[-1]-0.5, y1[-1]+0.5, z1[-1]], C1[:,0]])
+ax.scatter3D(v[:, 0], v[:, 1], v[:, 2])
+ax.scatter3D(v1[:, 0], v1[:, 1], v1[:, 2])
+
+# generate list of sides' polygons of our pyramid
+verts = [ [v[0],v[1],v[4]], [v[0],v[3],v[4]],
+ [v[2],v[1],v[4]], [v[2],v[3],v[4]], [v[0],v[1],v[2],v[3]]]
+verts1 = [ [v1[0],v1[1],v1[4]], [v1[0],v1[3],v1[4]],
+ [v1[2],v1[1],v1[4]], [v1[2],v1[3],v1[4]], [v1[0],v1[1],v1[2],v1[3]]]
+
+# plot sides
+ax.add_collection3d(Poly3DCollection(verts, facecolors='cyan', linewidths=1, edgecolors='g', alpha=.25))
+ax.add_collection3d(Poly3DCollection(verts1, facecolors='green', linewidths=1, edgecolors='r', alpha=.25))
 
 ax.scatter3D(X[:,0], X[:,1], X[:,2], 'red')
 ax.set_xlabel('x')
@@ -224,9 +253,9 @@ plt.show()
 
 
 # cv.drawMatchesKnn expects list of lists as matches.
-# img3 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, good_matches, None, [0,255,0])
-# img4 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, inl_match, None, [0,0,255])
-# vis = np.concatenate((img3, img4), axis=0)
+img3 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, good_matches, None, [0,255,0])
+img4 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, inl_match, None, [0,0,255])
+vis = np.concatenate((img3, img4), axis=0)
 # cv2.namedWindow("output", cv2.WINDOW_NORMAL) 
 # cv2.imshow("output", img4)
 # plt.imshow(cv2.cvtColor(img4, cv2.COLOR_BGR2RGB))
