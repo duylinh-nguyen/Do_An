@@ -4,7 +4,8 @@ import cv2
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 import matplotlib.pyplot as plt
-from estimateFundamentalMat import *
+from scipy.optimize import leastsq
+# from estimateFundamentalMat import *
 
 
 # Extract features and matching features 
@@ -47,7 +48,7 @@ def Euclide2Homo(local_pairs):
     return homo  
 
 
-def findEssentialMat(_fundamental_matrix, _K):
+def computeEssentialMat(_fundamental_matrix, _K):
     _essential_matrix = (_K).T @ _fundamental_matrix @ _K
     u, s, v = np.linalg.svd(np.array(_essential_matrix))
     _essential_matrix = u @ np.diag([1,1,0]) @ v
@@ -113,6 +114,9 @@ def triangulation(K, R1, R2, T1, T2, x1, x2):
 
 
 def checkCheirality(K, Rset, Tset, inliers):
+    ''' Check for cheirality constrain
+        to pick most possible pose from Rset & Tset
+        *note: depth = R3*(X+T) > 0 '''
 
     x1 = np.array([x[0][:2] for x in inliers])
     x2 = np.array([x[1][:2] for x in inliers])
@@ -129,21 +133,46 @@ def checkCheirality(K, Rset, Tset, inliers):
     for i in range(len(Rset)):
         vote = 0
         temp_X = []
+        mask = np.zeros((len(inliers)))
         X = triangulation(K, R1, Rset[i], T1, Tset[i], x1, x2)
         for j in range(len(X)):
-            z = Rset[i][2] @ (X[j][0:3] - Tset[i])
+            z = Rset[i][2] @ (X[j][0:3] + Tset[i])
             if (z > 0 and X[j,3] > 0):
                 temp_X.append(X[j])
+                mask[j] = 1
                 vote += 1    
         if vote > max_vote:
             max_vote = vote 
             ret_R = Rset[i]
             ret_T = Tset[i]
             ret_X = temp_X
-        print("vote for pose ", i, "th = ", vote)
+            final_mask = mask
+        print("Vote for pose", i, "=", vote)
     print("Max vote: ", max_vote)
     print("Total inliers: ", np.shape(X))
-    return ret_R, ret_T, ret_X
+    return ret_R, ret_T, ret_X, final_mask
+
+
+def reprojectionError(X, inlier, R, T, K):
+    ''' Reprojection Error function 
+        for Non-linear Triangulation.
+        inlier: (2x1) pair of inliers 
+        X: linear triangulated 3D point
+        *note: Hàm này áp dụng trên 1 điểm duy nhất'''
+
+    R0 = np.identity(3)
+    T0 = np.zeros((3, 1))
+    
+    T0 = np.reshape(T0, (3,1))
+    T = np.reshape(T, (3,1))
+
+    # 1st camera's projection matrix
+    P0 = K @ np.concatenate((R0, T0), axis = 1)
+    # 2nd camera's projection matrix
+    P = K @ np.concatenate((R, T), axis = 1)
+
+    # e = d(P0.X - x1)^2 + d(P.X - x2)^2
+    return np.linalg.norm((P0 @ X) - inlier[0])**2 + np.linalg.norm((P @ X) - inlier[1])**2
 
 #BACKUP.PY
 '''BACKUP CODE NGAY ĐÂY'''
@@ -192,34 +221,38 @@ for i in range(len(inliers_mask)):
         inl_match.append(good_matches[i])
         inliers.append(homo_pt_pairs[i])
 
-'''My function backup code is here'''
-
-essential_matrix = findEssentialMat(fund_matrix, K)
-
+essential_matrix = computeEssentialMat(fund_matrix, K)
 
 R1, R2, T1 = cv2.decomposeEssentialMat(essential_matrix)
-
-
 print("OpenCV R1: \n", R1)
 print("Opencv T1: \n", T1)
 
 Rset, Tset = estimateCamPose(essential_matrix)
-# print("Shape of T", np.shape(T))
-R, T, X = checkCheirality(K, Rset, Tset, inliers)
-print("My R: \n", R)
-print("My T: \n", T)
+R, T, X, tMask = checkCheirality(K, Rset, Tset, inliers)
+print("Rotation matrix R: \n", R)
+print("Translation vector T: \n", T)
 
 
 
-'''Visualize the result'''
+tInliers = []
+''' Apply mask to inliers to get triangulated inliers 
+    relative to X'''
+for i in range(len(tMask)):
+    if (tMask[i]): 
+        tInliers.append(inliers[i])
 
-X.sort(key = lambda x: x[1])
-X = np.array(X[4:])
+# print("X[0] =", X[0])
+# out = leastsq(reprojectionError, X[0], args=(tInliers[0], R, T, K))
+
+'''Visualize the camera pose'''
+
+# X.sort(key = lambda x: x[1])
+X = np.array(X[:])
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-# define camera vectors
+# define first camera vectors
 C =np.array([[0], [0], [0]])
 z = np.array([0,0,1])
 y = np.array([0,1,0])
@@ -231,11 +264,10 @@ plt.quiver(*C, V[:,0], V[:,1], V[:,2], color = ['r', 'g', 'b'])
 v = np.array([[x[-1]-0.5, y[-1]-0.5, z[-1]], [x[-1]+0.5, y[-1]-0.5, z[-1]], [x[-1]+0.5, y[-1]+0.5, z[-1]],  [x[-1]-0.5, y[-1]+0.5, z[-1]], C[:,0]])
 v1 = [(R @ i + T) for i in v]
 v1 = np.array(v1)
-#v1 = np.array([[x1[-1]-0.5, y1[-1]-0.5, z1[-1]], [x1[-1]+0.5, y1[-1]-0.5, z1[-1]], [x1[-1]+0.5, y1[-1]+0.5, z1[-1]],  [x1[-1]-0.5, y1[-1]+0.5, z1[-1]], C1[:,0]])
 ax.scatter3D(v[:, 0], v[:, 1], v[:, 2])
 ax.scatter3D(v1[:, 0], v1[:, 1], v1[:, 2])
 
-# generate list of sides' polygons of our pyramid
+# generate list of sides' polygons of camera symbols
 verts = [ [v[0],v[1],v[4]], [v[0],v[3],v[4]],
  [v[2],v[1],v[4]], [v[2],v[3],v[4]], [v[0],v[1],v[2],v[3]]]
 verts1 = [ [v1[0],v1[1],v1[4]], [v1[0],v1[3],v1[4]],
@@ -245,10 +277,14 @@ verts1 = [ [v1[0],v1[1],v1[4]], [v1[0],v1[3],v1[4]],
 ax.add_collection3d(Poly3DCollection(verts, facecolors='cyan', linewidths=1, edgecolors='g', alpha=.25))
 ax.add_collection3d(Poly3DCollection(verts1, facecolors='green', linewidths=1, edgecolors='r', alpha=.25))
 
-ax.scatter3D(X[:,0], X[:,1], X[:,2], 'red')
+
+'''Visualize 3D points'''
+ax.scatter3D(X[:,0], X[:,1], X[:,2], 'red', s=1)
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 ax.set_zlabel('z');
+
+plt.tight_layout()
 plt.show()
 
 
@@ -260,9 +296,6 @@ vis = np.concatenate((img3, img4), axis=0)
 # cv2.imshow("output", img4)
 # plt.imshow(cv2.cvtColor(img4, cv2.COLOR_BGR2RGB))
 # plt.show()
-# # cv2.namedWindow("output1", cv2.WINDOW_NORMAL) 
-# # cv2.imshow("output1", img4)
 
 cv2.waitKey()
 cv2.destroyAllWindows()
-#cv2.drawMatchesKnn(img1, kp1, img2, kp2, good, None, [0,255,0])
