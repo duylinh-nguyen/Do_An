@@ -65,13 +65,10 @@ def compute_normalized_fundamental(_samples):
     T2 = np.array([[S2, 0 ,-S2*M2[0]], [0, S2, -S2*M2[1]], [0, 0, 1]])
     x2 = x2 @ T2
 
-
     Ft = compute_fundamental(x1, x2)
     Ft = T1.T @ Ft @ T2
     # print('Me: \n', Ft/Ft[2,2])
     return Ft/Ft[2,2]
-
-
 
 
 def RANSACMethod(homo_pt_pairs, _threshold, _iteration):
@@ -79,9 +76,8 @@ def RANSACMethod(homo_pt_pairs, _threshold, _iteration):
     ret_f = []
     ret_mask = []
     n = 0
-    
     for i in range(_iteration):
-        samples = np.array(random.sample(homo_pt_pairs, 8))
+        samples = np.array(random.sample(list(homo_pt_pairs), 8))
         # print(samples)
         f = compute_normalized_fundamental(samples)
         mask = np.zeros((len(homo_pt_pairs),1))

@@ -1,45 +1,57 @@
-# Convert points from euclidian to homogenious coordinate
-def Euclide2Homo(local_pairs):
-    homo = []
 
-    for pair in local_pairs:
-        pair[0] = (pair[0][0], pair[0][1], 1)
-        pair[1] = (pair[1][0], pair[1][1], 1)
-        homo.append([pair[0], pair[1]])  
+def reprojectionError(X, inlier, R, T, K):
+    ''' Reprojection Error function 
+        for Non-linear Triangulation.
+        inlier: (2x1) pair of inliers 
+        X: linear triangulated 3D point
+        *note: Hàm này áp dụng trên 1 điểm duy nhất'''
 
-    return homo
+    R0 = np.identity(3)
+    T0 = np.zeros((3, 1))
+    
+    T0 = np.reshape(T0, (3,1))
+    T = np.reshape(T, (3,1))
+
+    # 1st camera's projection matrix
+    P0 = K @ np.concatenate((R0, T0), axis = 1)
+    # 2nd camera's projection matrix
+    P = K @ np.concatenate((R, T), axis = 1)
+
+    # e = d(P0.X - x1)^2 + d(P.X - x2)^2
+    return np.linalg.norm((P0 @ X) - inlier[0])**2 + np.linalg.norm((P @ X) - inlier[1])**2
+
+    # '''get inliers from homo_pt_pairs and inliers_mask'''
+    # inl_match = [] # inliers' match
+    # inliers = [] # inlier points in pair
+    # for i in range(len(inliers_mask)):
+    #     if (inliers_mask[i]): 
+    #         inl_match.append(good_matches[i])
+    #         inliers.append(homo_pt_pairs[i])
 
 
-# Compute essential matrix frome Fundamental matrix and Calibration matrix
 
+    # ax = fig.add_subplot(111, projection='3d')
+# define first camera vectors
+# C =np.array([[0], [0], [0]])
+# z = np.array([0,0,1])
+# y = np.array([0,1,0])
+# x = np.array([1,0,0])
 
-#Estimate possible camera poses
+# V = np.array([x,y,z])
 
-'''My function'''
-# homo_pt_pairs = Euclide2Homo(euclide_pt_pairs)
-# fund_matrix, inliers_mask= RANSACMethod(homo_pt_pairs, threshold, iteration)
+# plt.quiver(*C, V[:,0], V[:,1], V[:,2], color = ['r', 'g', 'b'])
+# v = np.array([[x[-1]-0.5, y[-1]-0.5, z[-1]], [x[-1]+0.5, y[-1]-0.5, z[-1]], [x[-1]+0.5, y[-1]+0.5, z[-1]],  [x[-1]-0.5, y[-1]+0.5, z[-1]], C[:,0]])
+# v1 = [(R @ i + T) for i in v]
+# v1 = np.array(v1)
+# ax.scatter3D(v[:, 0], v[:, 1], v[:, 2])
+# ax.scatter3D(v1[:, 0], v1[:, 1], v1[:, 2])
 
+# # generate list of sides' polygons of camera symbols
+# verts = [ [v[0],v[1],v[4]], [v[0],v[3],v[4]],
+#  [v[2],v[1],v[4]], [v[2],v[3],v[4]], [v[0],v[1],v[2],v[3]]]
+# verts1 = [ [v1[0],v1[1],v1[4]], [v1[0],v1[3],v1[4]],
+#  [v1[2],v1[1],v1[4]], [v1[2],v1[3],v1[4]], [v1[0],v1[1],v1[2],v1[3]]]
 
-# print(np.shape(mask))
-# print(np.shape(euclide_pt_pairs))
-
-# x1 = [[2,3], [4,8], [9,4]]
-# print(np.mean(x1, 0))
-
-# print(np.std(x1, 1)**2)
-# x2 = [[9,5], [2,5], [8,3]]
-
-# for pair in homo_pt_pairs:
-#     s = pair[0].T @ fund_matrix @ pair[1]
-#     s2  = pair[0].T @ Fo @ pair[1]
-#     print('Me: ', s, '| Opencv: ', s2)
-
-# for i in range(len(homo_pt_pairs)):
-#     result = homo_pt_pairs[i][0].T @ F @ homo_pt_pairs[i][1]
-#     print(result) 
-
-'''----------------------------------'''
-Matx43d A(u.x*P(2,0)-P(0,0),    u.x*P(2,1)-P(0,1),      u.x*P(2,2)-P(0,2),
-          u.y*P(2,0)-P(1,0),    u.y*P(2,1)-P(1,1),      u.y*P(2,2)-P(1,2),
-          u1.x*P1(2,0)-P1(0,0), u1.x*P1(2,1)-P1(0,1),   u1.x*P1(2,2)-P1(0,2),
-          u1.y*P1(2,0)-P1(1,0), u1.y*P1(2,1)-P1(1,1),   u1.y*P1(2,2)-P1(1,2))
+# # plot sides
+# ax.add_collection3d(Poly3DCollection(verts, facecolors='cyan', linewidths=1, edgecolors='g', alpha=.25))
+# ax.add_collection3d(Poly3DCollection(verts1, facecolors='green', linewidths=1, edgecolors='r', alpha=.25))
