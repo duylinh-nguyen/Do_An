@@ -1,9 +1,24 @@
 import os
 import glob
+import numpy as np
+import matplotlib.pyplot as plt
 
-path = 'C:/Users/NGUYEN DUY LINH/Desktop/SLAM/SLAM-LAB/data/'
-data_path = os.path.join(img_dir,'*g')
-files = glob.glob(data_path)
-line = txtfile.readline()
-ground_truth = np.array([float(x) for x in line.split()])
-ground_truth = ground_truth.reshape((3,4))
+path = 'D:/New folder/dataset/poses/00.txt'
+txtfile = open(path, 'r')
+trajectory = []
+for line in txtfile:
+    ground_truth = np.array([float(x) for x in line.split()])
+    ground_truth = ground_truth.reshape((3,4))
+    trajectory.append(ground_truth[:,-1])
+
+trajectory = np.array(trajectory)
+
+fig = plt.figure()
+plt.autoscale(enable=True, axis='both', tight=True)
+plt.axis('equal')
+
+plt.xlabel('x')
+plt.ylabel('z')
+
+plt.plot(trajectory[:,0], trajectory[:,2])
+plt.show()

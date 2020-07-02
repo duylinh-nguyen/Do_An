@@ -6,8 +6,6 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 import matplotlib.pyplot as plt
 from scipy.optimize import leastsq
 import extractFeature
-# from estimateFundamentalMat import *
-
 
 def Euclide2Homo(local_pairs):
 
@@ -74,18 +72,8 @@ def triangulation(K, R1, R2, T1, T2, x1, x2):
         u, s, v = np.linalg.svd(A)
         X.append(v[-1]/v[-1][-1])
 
-
-    # X = cv2.triangulatePoints(P1, P2, x1.T, x2.T).T
-
-    # print(np.shape(X))
-
-    # for i in range(len(X)):
-    #     X[i] /= X[i,3]
-
     return np.array(X)
 
-# homo_origin = np.zeros((1,4))
-# homo_origin[:,-1] = 1
 
 def checkCheirality(K, Rset, Tset, x1, x2):
     ''' Check for cheirality constrain
@@ -178,7 +166,6 @@ img2 = cv2.imread(path + 'image3.bmp')
 gray1 = cv2.cvtColor(img1,cv2.COLOR_RGB2GRAY)
 gray2 = cv2.cvtColor(img2,cv2.COLOR_RGB2GRAY)
 
-
 euclide_pt_pairs, _= extractFeature.getPointPair(gray1, gray2, number_of_points)
 
 x1 = np.array([x[0] for x in euclide_pt_pairs])
@@ -188,15 +175,6 @@ x2 = np.array([x[1] for x in euclide_pt_pairs])
 homo_pt_pairs = np.array(Euclide2Homo(euclide_pt_pairs))
 # fund_matrix, inliers_mask = cv2.findFundamentalMat(homo_pt_pairs[:,0], homo_pt_pairs[:,1], cv2.FM_RANSAC, 1, 0.999)
 essential_matrix, inliers_mask = cv2.findEssentialMat(np.round(x1, 2), np.round(x2, 2), K, cv2.RANSAC, 0.999, 1.0, None)
-# '''get inliers from homo_pt_pairs and inliers_mask'''
-# inl_match = [] # inliers' match
-# inliers = [] # inlier points in pair
-# for i in range(len(inliers_mask)):
-#     if (inliers_mask[i]): 
-#         inl_match.append(good_matches[i])
-#         inliers.append(homo_pt_pairs[i])
-
-# essential_matrix = computeEssentialMat(fund_matrix, K)
 
 R1, _, T1 = cv2.decomposeEssentialMat(essential_matrix)
 print("OpenCV R1: \n", R1)
@@ -226,7 +204,6 @@ print("Opencv2 T1: \n", T2)
 fig = plt.figure()
 plt.axis('equal')
 
-
 T = -R.T @T
 
 X = np.array(X)
@@ -241,9 +218,9 @@ plt.show()
 
 
 # cv.drawMatchesKnn expects list of lists as matches.
-img3 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, good_matches, None, [0,255,0])
-img4 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, inl_match, None, [0,0,255])
-vis = np.concatenate((img3, img4), axis=0)
+# img3 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, good_matches, None, [0,255,0])
+# img4 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, inl_match, None, [0,0,255])
+# vis = np.concatenate((img3, img4), axis=0)
 # cv2.namedWindow("output", cv2.WINDOW_NORMAL) 
 # cv2.imshow("output", img4)
 # plt.imshow(cv2.cvtColor(img4, cv2.COLOR_BGR2RGB))
