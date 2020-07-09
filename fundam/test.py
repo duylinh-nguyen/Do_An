@@ -157,8 +157,8 @@ path = 'C:\\Users\\NGUYEN DUY LINH\\Desktop\\Tai-lieu-do-an\\kitti\\00\\image_0\
 path = 'C:\\Users\\NGUYEN DUY LINH\\Desktop\\SLAM\\SLAM-LAB\\data\\'
 
 # Read images and initial SIFT feature detector
-img1 = cv2.imread(path + 'image2.bmp')
-img2 = cv2.imread(path + 'image3.bmp')
+img1 = cv2.imread(path + 'image5.bmp')
+img2 = cv2.imread(path + 'image6.bmp')
 
 # gray1 = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
 # gray2 = cv2.cvtColor(img2,cv2.COLOR_BGR2GRAY)
@@ -176,10 +176,7 @@ homo_pt_pairs = np.array(Euclide2Homo(euclide_pt_pairs))
 # fund_matrix, inliers_mask = cv2.findFundamentalMat(homo_pt_pairs[:,0], homo_pt_pairs[:,1], cv2.FM_RANSAC, 1, 0.999)
 essential_matrix, inliers_mask = cv2.findEssentialMat(np.round(x1, 2), np.round(x2, 2), K, cv2.RANSAC, 0.999, 1.0, None)
 
-R1, _, T1 = cv2.decomposeEssentialMat(essential_matrix)
-print("OpenCV R1: \n", R1)
-print("Opencv T1: \n", T1)
-
+'''RECOVER THE POSE'''
 Rset, Tset = estimateCamPose(essential_matrix)
 R, T, X, tMask = checkCheirality(K, Rset, Tset, x1, x2)
 print("Rotation matrix R: \n", R)
@@ -187,7 +184,7 @@ print("Translation vector T: \n", T)
 
 X2, R2, T2, tMask2 = cv2.recoverPose(essential_matrix, x1, x2, K)
 print("OpenCV2 R1: \n", R2)
-print("Opencv2 T1: \n", T2)
+print("Opencv2 T1: \n", T2.flatten())
 
 # tInliers = []
 # ''' Apply mask to inliers to get triangulated inliers 
@@ -199,9 +196,9 @@ print("Opencv2 T1: \n", T2)
 # print("X[0] =", X[0])
 # out = leastsq(reprojectionError, X[0], args=(tInliers[0], R, T, K))
 
-'''Visualize the camera pose'''
+'''VISUALIZE THE CAMERA POSE'''
 
-fig = plt.figure()
+fig = plt.figure(1)
 plt.axis('equal')
 
 T = -R.T @T
@@ -214,17 +211,17 @@ plt.scatter(T[0], T[2],color= 'blue' , s=2)
 plt.scatter(T2[0], T2[2],color= 'yellow', s=2 )
 
 plt.tight_layout()
-plt.show()
 
 
+fig2 = plt.figure(2)
 # cv.drawMatchesKnn expects list of lists as matches.
 # img3 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, good_matches, None, [0,255,0])
 # img4 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, inl_match, None, [0,0,255])
-# vis = np.concatenate((img3, img4), axis=0)
+vis = np.concatenate((img1, img2), axis=0)
 # cv2.namedWindow("output", cv2.WINDOW_NORMAL) 
 # cv2.imshow("output", img4)
-# plt.imshow(cv2.cvtColor(img4, cv2.COLOR_BGR2RGB))
-# plt.show()
+plt.imshow(cv2.cvtColor(vis, cv2.COLOR_BGR2RGB))
+plt.show()
 
 cv2.waitKey()
 cv2.destroyAllWindows()

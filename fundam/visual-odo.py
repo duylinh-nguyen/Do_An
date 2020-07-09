@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import os
 import glob
 import recoverPose as rcvpose
+import groundTruth
 
 # -------------------------------------------------------------------------
 ''' MAIN '''
@@ -25,17 +26,19 @@ files = glob.glob(data_path)
 iter = 0
 trajectory = []
 Pose = []
+
 # 4D homogeneous origin = [0,0,0,1]
 homo_origin = np.zeros((1,4))
 homo_origin[:,-1] = 1
 
-X = np.array((0,0,0,0))
+# Get ground truth trajectory
+g_trajectory = groundTruth.get()
 
-prev_ds2 = list()
+# Max iteration
+max_iter = 4542
 
-# txtfile = open('C:\\Users\\NGUYEN DUY LINH\\Desktop\\Tai-lieu-do-an\\kitti\\poses\\00.txt', 'r')
-
-fig = plt.figure()
+# Plot Init
+fig = plt.figure(0)
 plt.autoscale(enable=True, axis='both', tight=True)
 plt.axis('equal')
 
@@ -53,8 +56,8 @@ for f in files:
     # cv2.putText(im, frame_name ,(40,40), font, 1,(0,0,255),2)
     # resized = cv2.resize(im, (np.int(im.shape[1]/2), np.int(im.shape[0]/2)), interpolation = cv2.INTER_AREA)
 
-    ''' Test for the first "iter" images in dataset''' 
-    if (iter == 4000):
+    ''' Test for the first "max_iter" images in dataset''' 
+    if (iter == max_iter):
         break
 
     elif (iter == 0): #ietr = 0
@@ -73,17 +76,19 @@ for f in files:
         T = homo_recent_pose[:3,-1]
         global_pose = homo_recent_pose
         mask = [1]
-        print(global_pose)
+        # print(global_pose)
 
     elif (iter == 1):
         img1 = img2
         img2 = img
         R, T, X, mask = rcvpose.recoverPose(img1, img2, number_of_points)
+        scale = np.linalg.norm(g_trajectory[iter]-g_trajectory[iter-1])
+        T = scale * T
         recent_pose = np.concatenate((R.T, (-R.T @ T.T)), axis = 1)
         # global_pose = hom_recent_pose
         global_pose = np.concatenate((recent_pose, homo_origin), axis = 0)
         # print(np.linalg.inv(global_pose))
-        print("recent of "+ str(iter) + "\n", recent_pose)
+        # print("recent of "+ str(iter) + "\n", recent_pose)
         # print("pose of ietr " + str(iter) + "\n", Pose[iter])
 
     else: 
@@ -91,6 +96,8 @@ for f in files:
         img1 = img2
         img2 = img
         R, T, X, mask = rcvpose.recoverPose(img1, img2, number_of_points)
+        scale = np.linalg.norm(g_trajectory[iter]-g_trajectory[iter-1])
+        T = scale * T
         recent_pose = np.concatenate((R, T.T), axis = 1)
         homo_recent_pose = np.concatenate((recent_pose, homo_origin), axis = 0)
         global_pose = Pose[iter-1] @ np.linalg.inv(homo_recent_pose)
@@ -102,25 +109,35 @@ for f in files:
     position = global_pose[:3,-1]
     trajectory.append(position) 
 
-    plotx =[]
-    for i in range(len(X)):
-        if mask[i]==1:
-            plotx.append(X[i])
-    plotx = np.array(plotx)
 
-    plotx = np.array([(global_pose @ k).flatten() for k in plotx])
+    # Visualize 
+    plt.title("image "+str(iter))
+
+    # plotx =[]
+    # for i in range(len(X)):
+    #     if mask[i]==1:
+    #         plotx.append(X[i])
+    # plotx = np.array(plotx)
     
-    # print(plotx)
-    plt.scatter(plotx[:5,0], plotx[:5,2], color= 'green', s =1)
+    # plotx = np.array([(global_pose @ k).flatten() for k in plotx])
+    # plt.scatter(plotx[:5,0], plotx[:5,2], color= 'black', s =1)
 
-    plt.title("Image: "+str(iter))
+    
     plt.scatter(position[0], position[2], color= 'red', s=5)
+    plt.scatter(g_trajectory[iter][0], g_trajectory[iter][2], color= 'green', s=5)
     plt.pause(.00001)
 
-    cv2.imshow("output", img)
+    # cv2.imshow("output", img)
 
     iter+=1
     cv2.waitKey(1)
+
+
+rms_e = np.linalg.norm(trajectory - g_trajectory[:max_iter], axis = 1)
+
+fig1 = plt.figure(1)
+ind = np.arange(max_iter)
+plt.bar(ind, rms_e)
 
 
 plt.show()

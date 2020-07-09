@@ -156,59 +156,6 @@ def recoverPose(img1, img2, number_of_points):
         if (tMask[i]): 
             t_ds2.append(ds2[i])
 
-    # if init != 0:
-    #     scale = getScale(prev_ds2, t_ds2, X, prev_X, prev_norm_T, np.linalg.norm(T))
-    # init = 1
-    # prev_ds2 = t_ds2
-    # prev_X = X
-    # prev_norm_T = np.linalg.norm(T)
-
-    # X1, R1, T1, tMask1 = cv2.recoverPose(essential_matrix, x1, x2, K)
-    # print("opencv T", T1)
-    # print("R Error: ", np.linalg.norm(R1-R))
-    # print("T Error: ", np.linalg.norm(T1.flatten()-T))
 
     return R, T.reshape((1,3)), X, tMask
 
-def getScale(prev_ds2, t_ds2, X, prev_X, prev_norm_T, norm_T):
-
-    # print(np.shape(prev_ds2))
-    # print(np.shape(t_ds2))
-    # print(np.shape(X))
-    # print(np.shape(prev_X))
-    prev_ds2 = np.array(prev_ds2)
-    t_ds2 = np.array(t_ds2)
-    R1 = np.identity(3)
-    T1 = np.zeros((1, 3))
-    # Matching using BFmatcher or FLANN based matcher
-    bf = cv2.BFMatcher()
-    # flann = cv2.FlannBasedMatcher()
-    matches = bf.knnMatch(prev_ds2, t_ds2, k=2)
-
-    index = 0
-    good_matches = []
-    for m,n in matches:
-        if m.distance < 0.8*n.distance:
-            good_matches.append([m])
-            if index == 10:
-                break
-            index+=1
-
-    # Get points pairs from good matches
-    t = random.randrange(0,10,1)
-    X1 = prev_X[good_matches[0][0].queryIdx]
-    X2 = prev_X[good_matches[t][0].queryIdx]
-    X1p = X[good_matches[0][0].trainIdx]
-    X2p = X[good_matches[t][0].trainIdx]
-
-    d1 = np.linalg.norm(X1-X2)
-    d2 = np.linalg.norm(X1p-X2p)
-
-    if d1 == 0 or d2 == 0:
-        return 0
-    
-    ratio = prev_norm_T*d2/d1
-    scale = ratio / norm_T
-    print("Scale is ",scale)
-
-    return scale
