@@ -6,11 +6,9 @@ import glob
 import recoverPose as rcvpose
 import groundTruth
 
-# -------------------------------------------------------------------------
-''' MAIN '''
-# -------------------------------------------------------------------------
-# CONSTANT
-
+''' 
+# CONSTANTS
+'''
 # number of feature extracted 
 number_of_points = 500
 
@@ -20,7 +18,7 @@ K = np.array([[718.8560, 0.0, 607.1928],
               [0.0, 0.0, 1.0]])
 
 font = cv2.FONT_HERSHEY_SIMPLEX
-img_dir = "C:/Users/NGUYEN DUY LINH/Desktop/Tai-lieu-do-an/kitti/00/image_0" 
+img_dir = "D:/New folder/dataset/sequences/01/image_0" 
 data_path = os.path.join(img_dir,'*g')
 files = glob.glob(data_path)
 iter = 0
@@ -35,9 +33,11 @@ homo_origin[:,-1] = 1
 g_trajectory = groundTruth.get()
 
 # Max iteration
-max_iter = 4542
+max_iter = 1095
 
-# Plot Init
+'''
+# INIT PLOT
+'''
 fig = plt.figure(0)
 plt.autoscale(enable=True, axis='both', tight=True)
 plt.axis('equal')
@@ -48,8 +48,12 @@ plt.ylabel('z')
 
 for f in files:
 
-    '''Create & show image senquence with addition information'''
+    '''
+    # Create & show image senquence with addition information
+    '''
     img = cv2.imread(f)
+
+    cv2.imshow("output", img)
 
     # im = img
     # frame_name = 'image ' + os.path.basename(f)[0:6]
@@ -113,6 +117,9 @@ for f in files:
     # Visualize 
     plt.title("image "+str(iter))
 
+    '''
+    # Plot points
+    '''
     # plotx =[]
     # for i in range(len(X)):
     #     if mask[i]==1:
@@ -122,17 +129,19 @@ for f in files:
     # plotx = np.array([(global_pose @ k).flatten() for k in plotx])
     # plt.scatter(plotx[:5,0], plotx[:5,2], color= 'black', s =1)
 
-    
+    '''
+    # Plot trajectory
+    '''
     plt.scatter(position[0], position[2], color= 'red', s=5)
     plt.scatter(g_trajectory[iter][0], g_trajectory[iter][2], color= 'green', s=5)
     plt.pause(.00001)
 
-    # cv2.imshow("output", img)
-
     iter+=1
     cv2.waitKey(1)
 
-
+'''
+# ERROR PLOT
+'''
 rms_e = np.linalg.norm(trajectory - g_trajectory[:max_iter], axis = 1)
 
 fig1 = plt.figure(1)

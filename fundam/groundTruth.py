@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def get():
-    path = 'D:/New folder/dataset/poses/00.txt'
+    path = 'D:/New folder/dataset/poses/01.txt'
     txtfile = open(path, 'r')
     trajectory = []
     for line in txtfile:

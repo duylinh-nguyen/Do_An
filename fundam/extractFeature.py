@@ -1,9 +1,11 @@
 import cv2
 import numpy as np
 
-# Extract features and matching features 
-def getPointPair(gray_image1, gray_image2, number_of_points):
 
+def getPointPair(gray_image1, gray_image2, number_of_points):
+    '''
+    # Extract and match features 
+    '''
     sift = cv2.xfeatures2d.SIFT_create(number_of_points, contrastThreshold = 0.04, sigma = 1.6)
     kp1, des1 = sift.detectAndCompute(gray_image1,None)
     kp2, des2 = sift.detectAndCompute(gray_image2,None)
@@ -27,5 +29,8 @@ def getPointPair(gray_image1, gray_image2, number_of_points):
         p2 = kp2[m[0].trainIdx].pt
         des_pair.append([des1[m[0].queryIdx], des2[m[0].trainIdx]])
         local_pairs.append([p1, p2])
+        
+    # Description pairs    
     des_pair = np.array(des_pair)
+
     return local_pairs, des_pair[:,-1]

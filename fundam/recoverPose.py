@@ -5,6 +5,15 @@ import estimateFundamentalMat
 import random
 random.seed(1)
 
+'''
+# Local constants
+'''
+init = 0
+prev_ds2 = 0
+prev_X = 0
+scale = 0
+prev_norm_T = 0
+
 def computeEssentialMat(_fundamental_matrix, _K):
     _essential_matrix = (_K).T @ _fundamental_matrix @ _K
     u, _, v = np.linalg.svd(np.array(_essential_matrix))
@@ -12,6 +21,9 @@ def computeEssentialMat(_fundamental_matrix, _K):
     return _essential_matrix
 
 def Euclide2Homo(local_pairs):
+    '''
+    # CONVERT EUCLIDIAN COORDINATE TO HOMGENEOUS COORDINATE
+    '''
     homo = []
     for pair in local_pairs:
         pair[0] = (pair[0][0], pair[0][1], 1)
@@ -20,6 +32,9 @@ def Euclide2Homo(local_pairs):
     return homo  
 
 def estimateCamPose(essential_matrix):
+    '''
+    # Decompose Essential matrix to 4 possible poses
+    '''
     w = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])
     u, s, vh = np.linalg.svd(essential_matrix)
     T = [u[:,-1],
@@ -40,7 +55,9 @@ def estimateCamPose(essential_matrix):
 
 
 def triangulation(K, R1, R2, T1, T2, x1, x2):
-
+    '''
+    # Linear Triangulation 
+    '''
     if (len(x1) != len(x2)):
         print("x1, x2 dont have the same dimension!")
         return -1
@@ -72,9 +89,11 @@ def triangulation(K, R1, R2, T1, T2, x1, x2):
 
 
 def checkCheirality(K, Rset, Tset, x1, x2):
-    ''' Check for cheirality constrain
-        to pick most possible pose from Rset & Tset
-        *note: depth = R3*(X+T) > 0 '''
+    ''' 
+    Check for cheirality constrain
+    to pick most possible pose from Rset & Tset
+    *note: depth = R3*(X+T) > 0 
+    '''
     
     R1 = np.identity(3)
     T1 = np.zeros((1, 3))
@@ -107,12 +126,6 @@ def checkCheirality(K, Rset, Tset, x1, x2):
     # print("Total inliers: ", np.shape(X))
     # print(ret_X)
     return ret_R, ret_T, ret_X, final_mask
-
-init = 0
-prev_ds2 = 0
-prev_X = 0
-scale = 0
-prev_norm_T = 0
 
 def recoverPose(img1, img2, number_of_points):
 
@@ -155,7 +168,6 @@ def recoverPose(img1, img2, number_of_points):
     for i in range(len(tMask)):
         if (tMask[i]): 
             t_ds2.append(ds2[i])
-
 
     return R, T.reshape((1,3)), X, tMask
 
