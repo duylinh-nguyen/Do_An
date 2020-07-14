@@ -1,3 +1,6 @@
+'''
+# Module phục hồi R,t và thực hiện Linear Triangulation
+'''
 import cv2
 import numpy as np
 import extractFeature
@@ -6,7 +9,7 @@ import random
 random.seed(1)
 
 '''
-# Local constants
+# Hằng số
 '''
 init = 0
 prev_ds2 = 0
@@ -22,7 +25,7 @@ def computeEssentialMat(_fundamental_matrix, _K):
 
 def Euclide2Homo(local_pairs):
     '''
-    # CONVERT EUCLIDIAN COORDINATE TO HOMGENEOUS COORDINATE
+    # Chuyển từ tọa độ Euclide sang tọa độ thuần nhất
     '''
     homo = []
     for pair in local_pairs:
@@ -33,7 +36,7 @@ def Euclide2Homo(local_pairs):
 
 def estimateCamPose(essential_matrix):
     '''
-    # Decompose Essential matrix to 4 possible poses
+    # Phân giải ma trận E, tìm 4 khả năng của R và T
     '''
     w = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])
     u, s, vh = np.linalg.svd(essential_matrix)
@@ -90,8 +93,8 @@ def triangulation(K, R1, R2, T1, T2, x1, x2):
 
 def checkCheirality(K, Rset, Tset, x1, x2):
     ''' 
-    Check for cheirality constrain
-    to pick most possible pose from Rset & Tset
+    Kiểm tra điều kiện ràng buộc
+    Tìm ra R và T từ Rset & Tset
     *note: depth = R3*(X+T) > 0 
     '''
     

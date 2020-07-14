@@ -1,3 +1,7 @@
+'''
+# Module trích xuất đặc trưng và nhóm thành mảng kích thước Nx1x2 
+'''
+
 import cv2
 import numpy as np
 

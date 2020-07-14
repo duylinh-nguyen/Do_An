@@ -1,10 +1,14 @@
+'''
+# Module đọc ground truth từ file txt
+'''
+
 import os
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
 
 def get():
-    path = 'D:/New folder/dataset/poses/01.txt'
+    path = 'D:/New folder/dataset/poses/10.txt'
     txtfile = open(path, 'r')
     trajectory = []
     for line in txtfile:
@@ -15,13 +19,14 @@ def get():
     return np.array(trajectory)
 
 # Test function
-# trajectory = get()
-# fig = plt.figure()
-# plt.autoscale(enable=True, axis='both', tight=True)
-# plt.axis('equal')
+if __name__ == '__main__':
+    trajectory = get()
+    fig = plt.figure()
+    plt.autoscale(enable=True, axis='both', tight=True)
+    plt.axis('equal')
 
-# plt.xlabel('x')
-# plt.ylabel('z')
+    plt.xlabel('x')
+    plt.ylabel('z')
 
-# plt.plot(trajectory[:,0], trajectory[:,2])
-# plt.show()
+    plt.plot(trajectory[:,0], trajectory[:,2])
+    plt.show()

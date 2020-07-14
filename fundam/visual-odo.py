@@ -7,36 +7,37 @@ import recoverPose as rcvpose
 import groundTruth
 
 ''' 
-# CONSTANTS
+# Các giá trị hằng số
 '''
-# number of feature extracted 
+# Số đặc trưng tối đa 
 number_of_points = 500
 
-# Calibration matrix 
+# Ma trận hiệu chỉnh/ thông số nội 
 K = np.array([[718.8560, 0.0, 607.1928],
               [0.0, 719.2800, 185.2157],
               [0.0, 0.0, 1.0]])
 
 font = cv2.FONT_HERSHEY_SIMPLEX
-img_dir = "D:/New folder/dataset/sequences/01/image_0" 
+img_dir = "D:/New folder/dataset/sequences/10/image_0" 
 data_path = os.path.join(img_dir,'*g')
 files = glob.glob(data_path)
 iter = 0
 trajectory = []
 Pose = []
 
-# 4D homogeneous origin = [0,0,0,1]
+# Gốc tọa độ theo tọa độ thuần nhất = [0,0,0,1]
 homo_origin = np.zeros((1,4))
 homo_origin[:,-1] = 1
 
-# Get ground truth trajectory
+# Mảng chứ các vị trí thực tế: quỹ đạo thực tế
 g_trajectory = groundTruth.get()
 
 # Max iteration
-max_iter = 1095
+max_iter = len(files)-1
+# max_iter = 1223
 
 '''
-# INIT PLOT
+# Khởi tạo biểu đồ
 '''
 fig = plt.figure(0)
 plt.autoscale(enable=True, axis='both', tight=True)
@@ -49,11 +50,11 @@ plt.ylabel('z')
 for f in files:
 
     '''
-    # Create & show image senquence with addition information
+    # Đọc và hiển thị ảnh
     '''
     img = cv2.imread(f)
 
-    cv2.imshow("output", img)
+    # cv2.imshow("output", img)
 
     # im = img
     # frame_name = 'image ' + os.path.basename(f)[0:6]
@@ -66,10 +67,11 @@ for f in files:
 
     elif (iter == 0): #ietr = 0
         """
-        Homogeneous pose of the 1st camera: homo_recent_pose =
-            [[0. 0. 0. 0.]
-            [0. 0. 0. 0.]
-            [0. 0. 0. 0.]
+        Tạo mảng [R|T] cho ảnh tại gốc tham chiếu có R = I, T = 0
+        homo_recent_pose =
+            [[1. 0. 0. 0.]
+            [0. 1. 0. 0.]
+            [0. 0. 1. 0.]
             [0. 0. 0. 1.]]
         """
         img2 = img
@@ -118,7 +120,7 @@ for f in files:
     plt.title("image "+str(iter))
 
     '''
-    # Plot points
+    # Vẽ điểm đã được Triangulate
     '''
     # plotx =[]
     # for i in range(len(X)):
@@ -130,18 +132,27 @@ for f in files:
     # plt.scatter(plotx[:5,0], plotx[:5,2], color= 'black', s =1)
 
     '''
-    # Plot trajectory
+    # Vẽ quỹ đạo di chuyển bằng các vị trí T' = -R.transpose x T
     '''
-    plt.scatter(position[0], position[2], color= 'red', s=5)
-    plt.scatter(g_trajectory[iter][0], g_trajectory[iter][2], color= 'green', s=5)
+    recover_poses = plt.scatter(position[0], position[2], color= 'red', s=5)
+    ground_truth = plt.scatter(g_trajectory[iter][0], g_trajectory[iter][2], color= 'green', s=5)
+
+    plt.legend((recover_poses, ground_truth),
+           ('recover poses', 'ground truth',),
+           scatterpoints=1,
+           loc='upper left',
+           ncol=1,
+           fontsize=8)
+
     plt.pause(.00001)
 
     iter+=1
     cv2.waitKey(1)
 
 '''
-# ERROR PLOT
+# Vẽ biểu đồ cột thể hiện sai số cho vị trí của từng ảnh
 '''
+# Tính khoảng các euclide giữa thực tế và tính toán
 rms_e = np.linalg.norm(trajectory - g_trajectory[:max_iter], axis = 1)
 
 fig1 = plt.figure(1)
