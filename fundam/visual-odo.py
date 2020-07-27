@@ -9,6 +9,13 @@ import groundTruth
 ''' 
 # Các giá trị hằng số
 '''
+
+sequence = '10'
+
+# Max iteration
+# max_iter = len(files)-1
+max_iter = 500
+
 # Số đặc trưng tối đa 
 number_of_points = 500
 
@@ -18,7 +25,7 @@ K = np.array([[718.8560, 0.0, 607.1928],
               [0.0, 0.0, 1.0]])
 
 font = cv2.FONT_HERSHEY_SIMPLEX
-img_dir = "D:/New folder/dataset/sequences/10/image_0" 
+img_dir = "D:/New folder/dataset/sequences/"+sequence+"/image_0" 
 data_path = os.path.join(img_dir,'*g')
 files = glob.glob(data_path)
 iter = 0
@@ -30,11 +37,7 @@ homo_origin = np.zeros((1,4))
 homo_origin[:,-1] = 1
 
 # Mảng chứ các vị trí thực tế: quỹ đạo thực tế
-g_trajectory = groundTruth.get()
-
-# Max iteration
-max_iter = len(files)-1
-# max_iter = 1223
+g_trajectory = groundTruth.get(sequence)
 
 '''
 # Khởi tạo biểu đồ
@@ -54,7 +57,7 @@ for f in files:
     '''
     img = cv2.imread(f)
 
-    # cv2.imshow("output", img)
+    cv2.imshow("output", img)
 
     # im = img
     # frame_name = 'image ' + os.path.basename(f)[0:6]

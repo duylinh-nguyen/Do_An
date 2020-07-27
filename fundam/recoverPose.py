@@ -17,12 +17,6 @@ prev_X = 0
 scale = 0
 prev_norm_T = 0
 
-def computeEssentialMat(_fundamental_matrix, _K):
-    _essential_matrix = (_K).T @ _fundamental_matrix @ _K
-    u, _, v = np.linalg.svd(np.array(_essential_matrix))
-    _essential_matrix = u @ np.diag([1,1,0]) @ v
-    return _essential_matrix
-
 def Euclide2Homo(local_pairs):
     '''
     # Chuyển từ tọa độ Euclide sang tọa độ thuần nhất

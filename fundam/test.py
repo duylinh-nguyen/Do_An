@@ -153,12 +153,12 @@ K = np.array([[568.996140852    , 0             , 643.21055941],
 Tset = []
 Rset = []
 
-path = 'C:\\Users\\NGUYEN DUY LINH\\Desktop\\Tai-lieu-do-an\\kitti\\00\\image_0\\'
-path = 'C:\\Users\\NGUYEN DUY LINH\\Desktop\\SLAM\\SLAM-LAB\\data\\'
+path = "D:/New folder/dataset/sequences/06/image_0/" 
+# path = 'C:\\Users\\NGUYEN DUY LINH\\Desktop\\SLAM\\SLAM-LAB\\data\\'
 
 # Read images and initial SIFT feature detector
-img1 = cv2.imread(path + 'image5.bmp')
-img2 = cv2.imread(path + 'image6.bmp')
+img1 = cv2.imread(path + '000798.png')
+img2 = cv2.imread(path + '000799.png')
 
 # gray1 = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
 # gray2 = cv2.cvtColor(img2,cv2.COLOR_BGR2GRAY)

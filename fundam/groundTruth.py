@@ -7,8 +7,8 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 
-def get():
-    path = 'D:/New folder/dataset/poses/10.txt'
+def get(sequence):
+    path = 'D:/New folder/dataset/poses/'+ str(sequence)+'.txt'
     txtfile = open(path, 'r')
     trajectory = []
     for line in txtfile:
