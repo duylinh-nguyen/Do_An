@@ -14,7 +14,7 @@ sequence = '10'
 
 # Max iteration
 # max_iter = len(files)-1
-max_iter = 500
+max_iter = 5
 
 # Số đặc trưng tối đa 
 number_of_points = 500
@@ -37,7 +37,7 @@ homo_origin = np.zeros((1,4))
 homo_origin[:,-1] = 1
 
 # Mảng chứ các vị trí thực tế: quỹ đạo thực tế
-g_trajectory = groundTruth.get(sequence)
+g_trajectory, g_pose = groundTruth.get(sequence)
 
 '''
 # Khởi tạo biểu đồ
@@ -147,6 +147,7 @@ for f in files:
            ncol=1,
            fontsize=8)
 
+
     plt.pause(.00001)
 
     iter+=1
@@ -157,10 +158,19 @@ for f in files:
 '''
 # Tính khoảng các euclide giữa thực tế và tính toán
 rms_e = np.linalg.norm(trajectory - g_trajectory[:max_iter], axis = 1)
-
 fig1 = plt.figure(1)
 ind = np.arange(max_iter)
 plt.bar(ind, rms_e)
+plt.title("Sai số t")
+
+new_Pose = np.array(Pose[1:])
+norm  = [0]
+for i in range(max_iter-1):
+    norm.append(np.linalg.norm(new_Pose[i,:3,:3]- g_pose[i,:3,:3]))
+norm = np.array(norm)
+fig2 = plt.figure(2)
+plt.bar(ind, norm)
+plt.title("Sai số R")
 
 
 plt.show()

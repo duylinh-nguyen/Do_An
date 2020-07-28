@@ -11,12 +11,13 @@ def get(sequence):
     path = 'D:/New folder/dataset/poses/'+ str(sequence)+'.txt'
     txtfile = open(path, 'r')
     trajectory = []
+    g_pose = []
     for line in txtfile:
         ground_truth = np.array([float(x) for x in line.split()])
         ground_truth = ground_truth.reshape((3,4))
         trajectory.append(ground_truth[:,-1])
-
-    return np.array(trajectory)
+        g_pose.append(ground_truth)
+    return np.array(trajectory), np.array(g_pose)
 
 # Test function
 if __name__ == '__main__':
